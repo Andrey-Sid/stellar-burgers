@@ -1,36 +1,65 @@
-import { FC, useMemo } from 'react';
+import { FC, useEffect, useMemo } from 'react';
 import { TConstructorIngredient } from '@utils-types';
 import { BurgerConstructorUI } from '@ui';
+import { useDispatch, useSelector } from '../../services/store/store';
+import {
+  clearConstructor,
+  selectConstructorItems
+} from '../../services/slices/burger-constructor/burger-constructor';
+import {
+  clearPlacedOrderData,
+  placeOrder,
+  selectOrderRequest,
+  selectPlacedOrderData
+} from '../../services/slices/order/order';
+import { selectUser } from '../../services/slices/profile/profile';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export const BurgerConstructor: FC = () => {
-  /** TODO: взять переменные constructorItems, orderRequest и orderModalData из стора */
-  const constructorItems = {
-    bun: {
-      price: 0
-    },
-    ingredients: []
-  };
+  const constructorItems = useSelector(selectConstructorItems);
+  const orderRequest = useSelector(selectOrderRequest);
+  const orderModalData = useSelector(selectPlacedOrderData);
+  const user = useSelector(selectUser);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const orderRequest = false;
-
-  const orderModalData = null;
+  const dispatch = useDispatch();
 
   const onOrderClick = () => {
     if (!constructorItems.bun || orderRequest) return;
+
+    if (!user) {
+      navigate('/login', { state: { from: location } });
+      return;
+    }
+
+    const ingredientsIds = [
+      constructorItems.bun._id,
+      constructorItems.ingredients.map((i) => i._id),
+      constructorItems.bun._id
+    ].flat();
+
+    dispatch(placeOrder(ingredientsIds));
   };
-  const closeOrderModal = () => {};
 
-  const price = useMemo(
-    () =>
-      (constructorItems.bun ? constructorItems.bun.price * 2 : 0) +
-      constructorItems.ingredients.reduce(
-        (s: number, v: TConstructorIngredient) => s + v.price,
-        0
-      ),
-    [constructorItems]
-  );
+  useEffect(() => {
+    if (orderModalData) {
+      dispatch(clearConstructor());
+    }
+  }, [orderModalData]);
 
-  return null;
+  const closeOrderModal = () => {
+    dispatch(clearPlacedOrderData());
+  };
+
+  const price = useMemo(() => {
+    let bunPrice = constructorItems.bun ? constructorItems.bun.price * 2 : 0;
+    let ingredientsPrice = constructorItems.ingredients.reduce(
+      (total: number, item: TConstructorIngredient) => total + item.price,
+      0
+    );
+    return bunPrice + ingredientsPrice;
+  }, [constructorItems]);
 
   return (
     <BurgerConstructorUI

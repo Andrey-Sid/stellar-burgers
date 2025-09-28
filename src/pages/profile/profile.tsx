@@ -1,12 +1,16 @@
 import { ProfileUI } from '@ui-pages';
-import { FC, SyntheticEvent, useEffect, useState } from 'react';
+import React, { FC, SyntheticEvent, useEffect, useState } from 'react';
+import { useSelector, useDispatch } from '../../services/store/store';
+import { selectUser, update } from '../../services/slices/profile/profile';
+import { TRegisterData } from '@api';
 
 export const Profile: FC = () => {
-  /** TODO: взять переменную из стора */
-  const user = {
-    name: '',
-    email: ''
-  };
+  const user = useSelector(selectUser);
+  const dispatch = useDispatch();
+
+  if (!user) {
+    return;
+  }
 
   const [formValue, setFormValue] = useState({
     name: user.name,
@@ -28,6 +32,16 @@ export const Profile: FC = () => {
     !!formValue.password;
 
   const handleSubmit = (e: SyntheticEvent) => {
+    const data: Partial<TRegisterData> = {
+      name: formValue.name,
+      email: formValue.email
+    };
+
+    if (formValue.password) {
+      data.password = formValue.password;
+    }
+
+    dispatch(update(data));
     e.preventDefault();
   };
 
@@ -56,6 +70,4 @@ export const Profile: FC = () => {
       handleInputChange={handleInputChange}
     />
   );
-
-  return null;
 };
