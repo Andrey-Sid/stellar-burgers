@@ -1,0 +1,13 @@
+{
+  // расширение файла конфигурации
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // указание на типы из cypress
+    "types": ["cypress"]
+  },
+  "include": [
+    "../node_modules/cypress",
+    "./**/*.ts"
+  ]
+}
