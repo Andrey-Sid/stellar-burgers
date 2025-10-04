@@ -10,14 +10,14 @@ describe('Страница конструктора бургера', () => {
     cy.setCookie('refreshToken', 'test-refresh-token');
     cy.visit('http://localhost:4000/');
   });
-  // очищаю куки и хранилище от моковых данных после окончания тестов
+  // удаление куков и хранилища от моковых данных после тестов
   afterEach(() => {
     cy.clearCookies();
     cy.clearLocalStorage();
   });
 
   it('Должна загрузить ингредиенты и показать булки и соусы', () => {
-    // проверяем, что ингредиентов ещё нет (страница только открыта)
+    // проверка отсутствия ингридиентов
     cy.getIngredients().should('not.exist');
 
     cy.getIngredients().should('have.length.at.least', 1);
@@ -25,29 +25,29 @@ describe('Страница конструктора бургера', () => {
     cy.contains('Соус Spicy-X').should('exist');
   });
 
-  //переписываю этот тест
+  //обновление теста
   it('Добавляет ингредиент при клике по кнопке «Добавить»', () => {
-    //проверяем что конструктор пустой
+    //проверка пустоты конструктора
     const topBunSelector = '[data-cy="bun-top"]';
     const bottomBunSelector = '[data-cy="bun-bottom"]';
     cy.get(INGREDIENT_BURGER).should('not.exist');
     cy.get(topBunSelector).should('not.exist');
     cy.get(bottomBunSelector).should('not.exist');
 
-    //добавляем булку
+    //добавление основы
     const ingredientItemSelector = '[data-cy="ingredient-item"]';
     cy.contains('Краторная булка N-200i')
       .parents(ingredientItemSelector)
       .find('button')
       .click();
 
-    // добавялем котлету
+    // добавление котлеты
     cy.contains('Биокотлета из марсианской Магнолии')
       .parents(ingredientItemSelector)
       .find('button')
       .click();
 
-    // проверяем что в конструктор попала именно булка и котлета на которые кликали
+    // проверка соответствия булки и котлеты
     cy.get(topBunSelector).should('contain', 'Краторная булка N-200i (верх)');
     cy.get(INGREDIENT_BURGER).should(
       'contain',
@@ -57,10 +57,10 @@ describe('Страница конструктора бургера', () => {
   });
 
   it('Открывает модальное окно ингредиента', () => {
-    // проверяю закрыта ли модалка
+    // проверка закрытия модального окна
     cy.getModal().should('not.exist');
 
-    //кликаем по ингредиенту (булка)
+    //клик по булке
     cy.openIngredientModalByName('Краторная булка N-200i');
 
     cy.getModal().as('modal');
@@ -88,28 +88,28 @@ describe('Страница конструктора бургера', () => {
   });
 
   it('Собирает бургер и оформляет заказ', () => {
-    // проверяю конструктор на пустоту
+    // проверка пустоты конструктора
     cy.contains('Выберите булки').should('exist');
     cy.contains('Выберите начинку').should('exist');
 
-    // Добавляем ингредиенты
+    // Добавление ингредиентов
     cy.getIngredients().as('ingredients');
     cy.get('@ingredients').first().find('button').click();
     cy.get('@ingredients').last().find('button').click();
 
-    // Клик по кнопке «Оформить заказ»
+    // Клик «Оформить заказ»
     cy.contains('Оформить заказ').click();
 
-    // Проверяем, что открылось модальное окно с номером заказа
+    // Проверка открытия модалки с номером заказа
     cy.getModal().as('modal');
     cy.get('@modal').should('exist');
     cy.get('@modal').should('contain', '1234');
 
-    // Закрываем модальное окно
+    // Закрыти модалки
     cy.closeModalByButton();
     cy.getModal().should('not.exist');
 
-    // Проверка конструктора на пустоту
+    // Проверка пустоты конструктора
     cy.contains('Выберите булки').should('exist');
     cy.contains('Выберите начинку').should('exist');
   });
